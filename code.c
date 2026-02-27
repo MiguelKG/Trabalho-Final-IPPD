@@ -5,14 +5,14 @@
 #include <omp.h>
 
 #define MAX_AGENTS 1000
-#define MAX_RESOURCES_BASIS 100
+#define MAX_RESOURCES_BASIS 200
 #define MAX_COST 1000000
 
-int global_width = 10;
-int global_height = 10;
+int global_width = 100;
+int global_height = 100;
 int total_steps = 100;
 int season_length = 5;
-int total_agents = 10;
+int total_agents = 100;
 
 // Enums
 
@@ -99,16 +99,16 @@ float get_regeneration(TerrainType type, Season season) {
     switch (type) {
 
         case VILLAGE:
-            return 3.0;
+            return 1.0;
 
         case FISHING:
-            return (season == WET) ? 5.0 : 1.0;
+            return (season == WET) ? 2.0 : 1.0;
 
         case GATHERING:
-            return 3.0;
+            return 1.0;
 
         case FARMING:
-            return (season == DRY) ? 10.0 : 0.0;
+            return (season == DRY) ? 3.0 : 1.0;
 
         case RESTRICTED:
             return 0.0;
@@ -120,7 +120,7 @@ float get_regeneration(TerrainType type, Season season) {
 // Carga computacional sintética
 void perform_synthetic_work(float cost) {
 
-    long iterations = (long)(cost * 1000);
+    long iterations = (long)(cost * 10000);
     if (iterations > MAX_COST) iterations = MAX_COST;
 
     double dummy = 0;
@@ -168,7 +168,7 @@ void decide_movement(Agent *agent, int *new_x, int *new_y,
                 best_y = ny;
             } else
             if (
-                r >= (best_resource - best_resource * 0.25) &&
+                r >= (best_resource - (best_resource * 0.25)) &&
                 r > 0 &&
                 rand_r(seed) % 101 < 50
             ) {
@@ -279,7 +279,7 @@ int main(int argc, char** argv) {
                 season, grid, h_left, h_right, &seed);
 
             if (new_x >= 0 && new_x < local_width) {
-                float want_to_consume = 25.0f;
+                float want_to_consume = 20.0f;
 
                 #pragma omp atomic
                 grid[new_x][new_y].consumption_pool += want_to_consume;
@@ -349,7 +349,7 @@ int main(int argc, char** argv) {
                     &incoming_agents_buffer[incoming_from_right_count], incoming_from_left_count * sizeof(Agent), MPI_BYTE, left_neighbor, 3, 
                     MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-        // 4. Reconstrução da lista local de agentes
+        // Reconstrução da lista local de agentes
         // Primeiro, recolocamos quem nunca saiu
         for (int i = 0; i < count_staying; i++) {
             agents[i] = agents_staying_here[i];
